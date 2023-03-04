@@ -1,59 +1,43 @@
-from pyrogram import Client, filters
-from pyrogram.types import Message
-
+import telegram
 import os
-import requests
-from moviepy.editor import VideoFileClip, TextClip, CompositeVideoClip
+import cv2
 
-app = Client("my_bot_token", api_id=12345, api_hash="my_api_hash")
+bot = telegram.Bot(token='6067171502:AAF20GwzoxblYC4yBNw8nTffRJprwgLTKi0')
 
-# Define a function to add watermark to the video
-def add_watermark(video_path, watermark_text):
-    # Load the video clip
-    video_clip = VideoFileClip(video_path)
+def start(update, context):
+    context.bot.send_message(chat_id=update.effective_chat.id, text='This bot can add a watermark to your videos. Use the /set command to set the watermark.')
 
-    # Create a TextClip for the watermark
-    watermark = TextClip(watermark_text, fontsize=20, color='white', font='Arial-Bold')
+def set_watermark(update, context):
+    video_file = context.bot.getFile(update.message.video.file_id)
+    video_path = 'temp_video.mp4'
+    video_file.download(video_path)
 
-    # Add the watermark to the top right corner of the video clip
-    watermark_clip = watermark.set_position(('right', 'top')).set_duration(video_clip.duration)
-
-    # Composite the watermark with the video clip
-    final_clip = CompositeVideoClip([video_clip, watermark_clip])
-
-    # Export the composite video as a streamable file
-    output_file = os.path.splitext(video_path)[0] + '_watermarked.mp4'
-    final_clip.write_videofile(output_file, codec='libx264', preset='medium', bitrate='5000k', audio_codec='aac', fps=video_clip.fps, threads=4)
-
-    return output_file
-
-# Define a handler function for the /start command
-@app.on_message(filters.command('start'))
-def start_handler(client: Client, message: Message):
-    response = "Hi! I'm a bot that can add a watermark to your video files. Just send me a video file and use the /set command to add a watermark."
-    message.reply_text(response)
-
-# Define a handler function for the /set command
-@app.on_message(filters.command('set'))
-def set_handler(client: Client, message: Message):
-    # Check if the message has a video
-    if message.video is None:
-        message.reply_text("Please send a video file.")
-        return
-
-    # Download the video file
-    video_path = client.download_media(message.video)
-
-    # Add the watermark to the video
     watermark_text = '@OnlyFanstash'
-    output_file = add_watermark(video_path, watermark_text)
+    video = cv2.VideoCapture(video_path)
+    width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-    # Upload the watermarked video as a streamable file
-    response = requests.post('https://api.streamable.com/upload', files={'file': open(output_file, 'rb')}, auth=('my_streamable_username', 'my_streamable_password'))
-    video_url = 'https://streamable.com/' + response.json()['shortcode']
+    while True:
+        ret, frame = video.read()
+        if not ret:
+            break
+        cv2.putText(frame, watermark_text, (width-200, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        cv2.imwrite('temp_frame.jpg', frame)
+        os.system('ffmpeg -y -i temp_frame.jpg -i ' + video_path + ' -map 0:0 -map 1:1 -c:v libx264 -preset ultrafast -crf 22 -c:a copy -shortest temp_output.mp4')
+        os.remove('temp_frame.jpg')
+        os.remove(video_path)
+        os.rename('temp_output.mp4', video_path)
 
-    # Reply to the message with the watermarked video URL
-    message.reply_text(video_url)
+    context.bot.send_video(chat_id=update.effective_chat.id, video=open(video_path, 'rb'))
+
+def main():
+    updater = telegram.ext.Updater(token='your_bot_token_here', use_context=True)
+
+    updater.dispatcher.add_handler(telegram.ext.CommandHandler('start', start))
+    updater.dispatcher.add_handler(telegram.ext.CommandHandler('set', set_watermark, pass_args=True))
+
+    updater.start_polling()
+    updater.idle()
 
 if __name__ == '__main__':
-    app.run()
+    main()
