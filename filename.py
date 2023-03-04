@@ -1,6 +1,8 @@
 import pyrogram
 import os
 import cv2
+from pyrogram import filters
+
 
 app = pyrogram.Client(
     "my_bot",
