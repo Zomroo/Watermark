@@ -1,3 +1,2 @@
 pyrogram
-moviepy
-streamable-python
+ffmpeg-python
