@@ -10,6 +10,7 @@ bot_token = "1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
+
 # Define the watermark function
 def add_watermark(video_path, watermark_path, output_path):
     video = VideoFileClip(video_path)
@@ -20,33 +21,30 @@ def add_watermark(video_path, watermark_path, output_path):
     result = CompositeVideoClip([video, watermark])
     result.write_videofile(output_path)
 
-# Dictionary to store messages with video files
-message_dict = {}
-
 # Define the message handler function
 @app.on_message(filters.video & ~filters.forwarded)
 def handle_message(client: Client, message: Message):
-    # Store the message in the dictionary with the video file ID as the key
-    message_dict[message.video.file_id] = message
+    # Download the video file
+    video_file = client.download_media(
+        message=message.video,
+        file_name="video.mp4"
+    )
 
-# Define the /set command handler function
-@app.on_command("set")
-def handle_set(client: Client, message: Message):
-    # Retrieve the original message from the dictionary using the video file ID
-    original_message = message_dict.get(message.reply_to_message.video.file_id)
-    if original_message is None:
-        # If the original message is not found, send an error message
-        message.reply_text("Please reply to a video message that you want to add a watermark to with /set.")
-    else:
-        # Download the video file
-        video_file = client.download_media(
-            message=original_message.video,
-            file_name="video.mp4"
-        )
+    # Store the message ID to reference it later
+    watermark_message_id = message.message_id
+
+    # Ask the user to send the watermark image file
+    message.reply_text("Please reply to this message with the watermark image file.")
+
+    # Listen for the reply containing the watermark image file
+    @app.on_message(filters.reply & filters.photo)
+    def handle_watermark_message(client: Client, message: Message):
+        # Remove the listener so that it doesn't keep running unnecessarily
+        app.remove_handler(handle_watermark_message)
 
         # Download the watermark image file
         watermark_file = client.download_media(
-            message=message.reply_to_message,
+            message=message.photo[-1],
             file_name="watermark.png"
         )
 
@@ -60,10 +58,26 @@ def handle_set(client: Client, message: Message):
         add_watermark(video_file, watermark_file, output_file)
 
         # Send the watermarked video as a reply to the original message
-        original_message.reply_video(
+        message.reply_video(
             video=output_file,
             quote=True
         )
+
+    # Store the watermark message ID to reference it later
+    client.set_relay_data(watermark_message_id, "watermark_message_id")
+
+# Listen for the /set command
+@app.on_message(filters.command("set"))
+def handle_set_command(client: Client, message: Message):
+    # Get the watermark message ID from the original message
+    watermark_message_id = client.get_relay_data(message.reply_to_message.message_id, "watermark_message_id")
+
+    # If the watermark message ID exists, delete the watermark message
+    if watermark_message_id:
+        client.delete_messages(message.chat.id, watermark_message_id)
+        message.reply_text("Watermark image message deleted.")
+    else:
+        message.reply_text("No watermark image message found.")
 
 # Start the Pyrogram client
 app.run()
