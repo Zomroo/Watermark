@@ -2,6 +2,8 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 import os
 import logging
+import logging
+logging.basicConfig(filename='myapp.log', level=logging.DEBUG)
 
 # Set up the logging configuration
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
