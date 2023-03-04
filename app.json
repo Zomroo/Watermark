@@ -1,0 +1,37 @@
+{
+  "name": "your-app-name",
+  "description": "A brief description of your app.",
+  "repository": "https://github.com/Zomroo/Watermark",
+  "keywords": ["pyrogram", "telegram", "bot"],
+  "addons": [],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    },
+    {
+      "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git"
+    }
+  ],
+  "env": {
+    "API_ID": {
+      "description": "15849735.",
+      "required": true
+    },
+    "API_HASH": {
+      "description": "b8105dc4c17419dfd4165ecf1d0bc100.",
+      "required": true
+    },
+    "BOT_TOKEN": {
+      "description": "6145559264:AAEkUH_znhpaTdkbnndwP1Vy2ppv-C9Zf4o",
+      "required": true
+    }
+  },
+  "scripts": {
+    "start": "python filename.py"
+  },
+  "formation": {
+    "worker": {
+      "quantity": 1
+    }
+  }
+}
