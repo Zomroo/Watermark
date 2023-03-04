@@ -1,52 +1,46 @@
 import os
-import pyrogram
+import datetime
 from pyrogram import Client, filters
 from pyrogram.types import Message
+from moviepy.editor import VideoFileClip, TextClip, CompositeVideoClip
 
-# Create a Pyrogram client instance
+# Create a Pyrogram client
 app = Client("my_bot")
 
 
-# Filter for video messages
-video_filter = filters.video & ~filters.edited
-
-
-# Function to set watermark on video
-def set_watermark(video_path):
-    # Get the filename and extension
-    filename, extension = os.path.splitext(video_path)
-
-    # Set the path for the output file
-    output_path = f"{filename}_watermarked{extension}"
-
-    # Set the command to add the watermark
-    command = f"ffmpeg -i {video_path} -i watermark.png -filter_complex 'overlay=10:10' {output_path}"
-
-    # Run the command
-    os.system(command)
-
-    # Remove the original file
+# Define a function to add a watermark to the video
+def set_watermark(video_path: str, watermark_text: str) -> str:
+    video = VideoFileClip(video_path)
+    text_clip = (TextClip(watermark_text, fontsize=24, color='white', font='Arial-Bold')
+                 .set_position(('center', 30))
+                 .set_duration(video.duration))
+    result = CompositeVideoClip([video, text_clip])
+    output_path = os.path.join("downloads", f"watermarked_{os.path.basename(video_path)}")
+    result.write_videofile(output_path)
+    video.close()
+    result.close()
     os.remove(video_path)
-
-    # Rename the watermarked file to the original filename
-    os.rename(output_path, video_path)
+    return output_path
 
 
-# Handler function for video messages
-@app.on_message(video_filter)
-async def watermark_video(client: Client, message: Message):
+# Handle incoming messages
+@app.on_message(filters.command("start"))
+async def start_handler(_: Client, message: Message):
+    await message.reply_text("Hello! Send me a video and I'll add a watermark to it.")
+
+
+# Handle incoming messages with videos
+@app.on_message(filters.video & ~filters.edited_channel)
+async def video_handler(_: Client, message: Message):
     # Download the video
-    video_path = await message.download(file_name="temp_video.mp4")
+    video_path = await message.download()
 
-    # Set the watermark on the video
-    set_watermark(video_path)
+    # Add watermark to the video
+    watermark_text = f"Added by @{(await app.get_me()).username} on {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}"
+    watermarked_video_path = set_watermark(video_path, watermark_text)
 
     # Send the watermarked video
-    await message.reply_video(video_path)
+    await message.reply_video(video=watermarked_video_path)
 
-    # Remove the video file from the server
-    os.remove(video_path)
-
-
-# Run the client
+# Run the client until Ctrl+C is pressed
 app.run()
