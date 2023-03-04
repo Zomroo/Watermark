@@ -9,11 +9,11 @@ app = pyrogram.Client(
     bot_token="6067171502:AAF20GwzoxblYC4yBNw8nTffRJprwgLTKi0"  # Replace with your own bot token
 )
 
-@app.on_message(pyrogram.Filters.command(["start"]))
+@app.on_message(filters.command(["start"]))
 def start(bot, update):
     bot.send_message(chat_id=update.chat.id, text='This bot can add a watermark to your videos. Use the /set command to set the watermark.')
 
-@app.on_message(pyrogram.Filters.command(["set"]))
+@app.on_message(filters.command(["set"]))
 def set_watermark(bot, update):
     message = update.reply_to_message
     if message.video:
