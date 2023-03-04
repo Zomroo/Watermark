@@ -6,6 +6,7 @@ import os
 api_id = 15849735
 api_hash = 'b8105dc4c17419dfd4165ecf1d0bc100'
 bot_token = '6145559264:AAEkUH_znhpaTdkbnndwP1Vy2ppv-C9Zf4o'
+port = int(os.environ.get('PORT', 5000))
 app = Client('my_bot', api_id, api_hash, bot_token=bot_token)
 
 # Define a command handler for the /start command
