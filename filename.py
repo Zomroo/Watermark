@@ -1,6 +1,10 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message
 import os
+import logging
+
+# Set up the logging configuration
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 # Create a Pyrogram client instance
 api_id = 15849735
@@ -8,6 +12,9 @@ api_hash = 'b8105dc4c17419dfd4165ecf1d0bc100'
 bot_token = '6145559264:AAEkUH_znhpaTdkbnndwP1Vy2ppv-C9Zf4o'
 port = int(os.environ.get('PORT', 5000))
 app = Client('my_bot', api_id, api_hash, bot_token=bot_token)
+
+# Log the "I am alive" message
+logging.info('I am alive')
 
 # Define a command handler for the /start command
 @app.on_message(filters.command('start'))
@@ -49,8 +56,9 @@ def status_command_handler(client, message):
         status_message = f"Video upload status: {sent_size} bytes ({progress}% done)"
         client.send_message(message.chat.id, status_message)
     else:
-        # Send an error message if the replied message is not the modified video sent by the bot
-        client.send_message(message.chat.id, 'Please reply to the video sent by the bot with the /status command.')
+        # Send an error message if the replied
+message is not the modified video sent by the bot
+client.send_message(message.chat.id, 'Please reply to the modified video sent by the bot with the /status command.')
 
-# Start the Pyrogram client
+# Run the bot
 app.run()
