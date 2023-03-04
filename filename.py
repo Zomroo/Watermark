@@ -3,8 +3,17 @@ from pyrogram.types import Message
 import os
 from moviepy.editor import *
 
-# Initialize the Pyrogram client
-app = Client("my_account")
+# Add your API ID, API hash, and bot token here
+api_id = 12345
+api_hash = "0123456789abcdef0123456789abcdef"
+bot_token = "1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+
+app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
+
+# Your bot logic goes here
+
+app.run()
+
 
 # Define the watermark function
 def add_watermark(video_path, watermark_path, output_path):
