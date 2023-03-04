@@ -15,7 +15,6 @@ app = Client('my_bot', api_id, api_hash, bot_token=bot_token)
 
 # Log the "I am alive" message
 logging.info('I am alive')
-
 # Define a command handler for the /start command
 @app.on_message(filters.command('start'))
 def start_command_handler(client, message):
@@ -59,3 +58,7 @@ def status_command_handler(client, message):
         # Send an error message if the replied message is not the modified video sent by the bot
         client.send_message(message.chat.id, 'Please reply to the modified video sent by the bot with the /status command.')
         pass  # add this line to indicate that there is no code to be executed in this block
+        
+# Start
+if __name__ == '__main__':
+    app.run()  # Run the Pyrogram client
