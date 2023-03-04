@@ -56,9 +56,6 @@ def status_command_handler(client, message):
         status_message = f"Video upload status: {sent_size} bytes ({progress}% done)"
         client.send_message(message.chat.id, status_message)
     else:
-        # Send an error message if the replied
-message is not the modified video sent by the bot
-client.send_message(message.chat.id, 'Please reply to the modified video sent by the bot with the /status command.')
-
-# Run the bot
-app.run()
+        # Send an error message if the replied message is not the modified video sent by the bot
+        client.send_message(message.chat.id, 'Please reply to the modified video sent by the bot with the /status command.')
+        pass  # add this line to indicate that there is no code to be executed in this block
