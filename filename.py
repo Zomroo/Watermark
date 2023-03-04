@@ -1,75 +1,39 @@
-from pyrogram import Client, filters
-from pyrogram.types import Message
 import os
+from pyrogram import Client, filters
 from moviepy.editor import *
+from moviepy.video.tools.subtitles import SubtitlesClip
+from moviepy.video.VideoClip import TextClip
 
-# Add your API ID, API hash, and bot token here
-api_id = 15849735
-api_hash = "b8105dc4c17419dfd4165ecf1d0bc100"
-bot_token = "6145559264:AAEkUH_znhpaTdkbnndwP1Vy2ppv-C9Zf4o"
+# API credentials
+API_ID = os.environ.get("15849735")
+API_HASH = os.environ.get("b8105dc4c17419dfd4165ecf1d0bc100")
+BOT_TOKEN = os.environ.get("6145559264:AAEkUH_znhpaTdkbnndwP1Vy2ppv-C9Zf4o")
 
-app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
+# Create the Pyrogram client
+app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-# Define watermark image path
-watermark_file = None
 
-# Define the watermark function
-def add_watermark(video_path, output_path):
-    video = VideoFileClip(video_path)
-    watermark = (ImageClip(watermark_file)
-                 .resize(height=video.h / 6) # You can adjust the size of the watermark here
-                 .margin(right=8, top=8, opacity=0) # You can adjust the position of the watermark here
-                 .set_pos(("right", "top")))
-    result = CompositeVideoClip([video, watermark])
-    result.write_videofile(output_path)
+def add_watermark(video_file, output_file, watermark_text):
+    """Adds a watermark to a video file."""
+    video = VideoFileClip(video_file)
 
-# Define the /start command handler
-@app.on_message(filters.command("start"))
-def start(client: Client, message: Message):
-    message.reply_text("Hi! I can add a watermark to your videos. To get started, reply to a video with /set and upload a watermark image.")
+    # Add watermark text to the video
+    txt_clip = TextClip(watermark_text, fontsize=30, color='white').set_position("bottom")
+    result = CompositeVideoClip([video, txt_clip])
 
-# Define the /set command handler
-@app.on_message(filters.command("set"))
-def set_watermark(client: Client, message: Message):
-    # Check if the message is a reply to a video
-    if message.reply_to_message and message.reply_to_message.video:
-        # Download the watermark image file
-        global watermark_file
-        watermark_file = client.download_media(
-            message=message,
-            file_name="watermark.png"
-        )
-        message.reply_text("Watermark image set successfully! You can now reply to a video with /watermark to get the watermarked video.")
-    else:
-        message.reply_text("Please reply to a video to set the watermark image.")
+    # Save the watermarked video
+    result.write_videofile(output_file)
 
-# Define the /watermark command handler
-@app.on_message(filters.command("watermark"))
-def watermark(client: Client, message: Message):
-    # Check if the message is a reply to a video
-    if message.reply_to_message and message.reply_to_message.video:
-        # Download the video file
-        video_file = client.download_media(
-            message=message.reply_to_message,
-            file_name="video.mp4"
-        )
 
-        # Generate the output file path
-        output_file = os.path.join(
-            "downloads",
-            f"{os.path.splitext(os.path.basename(video_file))[0]}_watermarked.mp4"
-        )
+@app.on_message(filters.video & filters.reply)
+def set_watermark(client, message):
+    """Sets the watermark for the bot."""
+    video_file = client.download_media(message.reply_to_message)
+    watermark_text = "@OnlyFanstash"
+    output_file = "watermarked_" + os.path.basename(video_file)
+    add_watermark(video_file, output_file, watermark_text)
+    message.reply_video(output_file)
 
-        # Add the watermark to the video
-        add_watermark(video_file, output_file)
 
-        # Send the watermarked video as a reply
-        message.reply_video(
-            video=output_file,
-            quote=True
-        )
-    else:
-        message.reply_text("Please reply to a video with /watermark to get the watermarked video.")
-
-# Start the Pyrogram client
-app.run()
+if __name__ == "__main__":
+    app.run()
