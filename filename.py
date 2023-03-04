@@ -30,7 +30,7 @@ async def start_handler(_: Client, message: Message):
 
 
 # Handle incoming messages with videos
-@app.on_message(filters.video & ~filters.edited_channel)
+@app.on_message(filters.video & ~filters.edited & ~filters.forwarded)
 async def video_handler(_: Client, message: Message):
     # Download the video
     video_path = await message.download()
