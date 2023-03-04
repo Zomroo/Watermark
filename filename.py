@@ -3,17 +3,6 @@ import os
 import cv2
 from pyrogram import filters
 
-import os
-
-print(f"Current working directory: {os.getcwd()}")
-print(f"Files in the directory: {os.listdir()}")
-
-if message.video:
-    video_path = message.download(file_name="temp_video.mp4", directory="downloads")
-    print(f"Video file saved as: {video_path}")
-    watermark_text = "@OnlyFanstash"
-    ...
-
 
 app = pyrogram.Client(
     "my_bot",
