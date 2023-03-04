@@ -10,7 +10,6 @@ bot_token = "1234567890:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 app = Client("my_bot", api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 
-
 # Define the watermark function
 def add_watermark(video_path, watermark_path, output_path):
     video = VideoFileClip(video_path)
@@ -21,39 +20,50 @@ def add_watermark(video_path, watermark_path, output_path):
     result = CompositeVideoClip([video, watermark])
     result.write_videofile(output_path)
 
-# Define the message handler function
-@app.on_message(filters.command("start"))
-def start_handler(client: Client, message: Message):
-    message.reply_text("Hi, send me a video and reply to it with a watermark image to add the watermark.")
+# Dictionary to store messages with video files
+message_dict = {}
 
+# Define the message handler function
 @app.on_message(filters.video & ~filters.forwarded)
 def handle_message(client: Client, message: Message):
-    # Download the video file
-    video_file = client.download_media(
-        message=message.video,
-        file_name="video.mp4"
-    )
+    # Store the message in the dictionary with the video file ID as the key
+    message_dict[message.video.file_id] = message
 
-    # Download the watermark image file
-    watermark_file = client.download_media(
-        message=message.reply_to_message,
-        file_name="watermark.png"
-    )
+# Define the /set command handler function
+@app.on_command("set")
+def handle_set(client: Client, message: Message):
+    # Retrieve the original message from the dictionary using the video file ID
+    original_message = message_dict.get(message.reply_to_message.video.file_id)
+    if original_message is None:
+        # If the original message is not found, send an error message
+        message.reply_text("Please reply to a video message that you want to add a watermark to with /set.")
+    else:
+        # Download the video file
+        video_file = client.download_media(
+            message=original_message.video,
+            file_name="video.mp4"
+        )
 
-    # Generate the output file path
-    output_file = os.path.join(
-        "downloads",
-        f"{os.path.splitext(os.path.basename(video_file))[0]}_watermarked.mp4"
-    )
+        # Download the watermark image file
+        watermark_file = client.download_media(
+            message=message.reply_to_message,
+            file_name="watermark.png"
+        )
 
-    # Add the watermark to the video
-    add_watermark(video_file, watermark_file, output_file)
+        # Generate the output file path
+        output_file = os.path.join(
+            "downloads",
+            f"{os.path.splitext(os.path.basename(video_file))[0]}_watermarked.mp4"
+        )
 
-    # Send the watermarked video as a reply
-    message.reply_video(
-        video=output_file,
-        quote=True
-    )
+        # Add the watermark to the video
+        add_watermark(video_file, watermark_file, output_file)
+
+        # Send the watermarked video as a reply to the original message
+        original_message.reply_video(
+            video=output_file,
+            quote=True
+        )
 
 # Start the Pyrogram client
-app.run() 
+app.run()
