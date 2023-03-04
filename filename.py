@@ -34,9 +34,12 @@ def set_watermark(bot, update):
             os.system(f'ffmpeg -y -i temp_frame.jpg -i "{video_path}" -map 0:0 -map 1:1 -c:v libx264 -preset ultrafast -crf 22 -c:a copy -shortest temp_output.mp4')
             os.remove('temp_frame.jpg')
             os.remove(video_path)
-            os.rename('temp_output.mp4', video_path)
+            if os.path.exists('temp_output.mp4'):
+                os.rename('temp_output.mp4', video_path)
 
-        bot.send_video(chat_id=update.chat.id, video=video_path)
+        video = open(video_path, 'rb')
+        update.reply_video(video)
+        video.close()
         os.remove(video_path)
     else:
         bot.send_message(chat_id=update.chat.id, text="Please reply to a video to add watermark.")
