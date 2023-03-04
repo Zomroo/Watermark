@@ -1,7 +1,6 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message
 import os
-import time
 
 # Create a Pyrogram client instance
 api_id = 15849735
@@ -25,7 +24,7 @@ def set_command_handler(client, message):
         video = client.download_media(message.reply_to_message.video)
         # Add the text to the top right corner of the video using ffmpeg
         os.system(f'ffmpeg -i "{video}" -vf "drawtext=text=@OnlyFanstash:x=w-tw-10:y=10:fontsize=20:fontcolor=white:box=1:boxcolor=black@0.5" -c:a copy output.mp4')
-        # Upload the modified video and keep track of the message
+        # Upload the modified video and save the sent message
         sent_msg = client.send_video(message.chat.id, 'output.mp4', supports_streaming=True)
         # Delete the downloaded and modified video files
         os.remove(video)
@@ -37,11 +36,20 @@ def set_command_handler(client, message):
 # Define a command handler for the /status command
 @app.on_message(filters.command('status'))
 def status_command_handler(client, message):
-    # Get the status of the video upload every second
-    while True:
-        time.sleep(1)
-        status_message = f"Video upload status: {sent_msg.video.file_size} bytes"
-        client.edit_message_text(chat_id=message.chat.id, message_id=message.message_id, text=status_message)
+    # Check if the replied message is the modified video sent by the bot
+    if message.reply_to_message.video and message.reply_to_message.video.file_name == 'output.mp4':
+        # Get the size of the modified video file
+        output_size = os.path.getsize('output.mp4')
+        # Get the size of the video file sent by the bot
+        sent_size = message.reply_to_message.video.file_size
+        # Calculate the upload progress
+        progress = round(sent_size / output_size * 100)
+        # Send the status message
+        status_message = f"Video upload status: {sent_size} bytes ({progress}% done)"
+        client.send_message(message.chat.id, status_message)
+    else:
+        # Send an error message if the replied message is not the modified video sent by the bot
+        client.send_message(message.chat.id, 'Please reply to the video sent by the bot with the /status command.')
 
 # Start the Pyrogram client
 app.run()
