@@ -21,8 +21,11 @@ def add_watermark(video_path, watermark_path, output_path):
     result = CompositeVideoClip([video, watermark])
     result.write_videofile(output_path)
 
-
 # Define the message handler function
+@app.on_message(filters.command("start"))
+def start_handler(client: Client, message: Message):
+    message.reply_text("Hi, send me a video and reply to it with a watermark image to add the watermark.")
+
 @app.on_message(filters.video & ~filters.forwarded)
 def handle_message(client: Client, message: Message):
     # Download the video file
@@ -52,18 +55,5 @@ def handle_message(client: Client, message: Message):
         quote=True
     )
 
-
-# Define the start command handler function
-@app.on_command("start")
-def start_command(client: Client, message: Message):
-    message.reply_text("Hi! I can help you add a watermark to your videos. To get started, reply to a video with /set to set the watermark image.")
-
-
-# Define the set command handler function
-@app.on_command("set")
-def set_command(client: Client, message: Message):
-    message.reply_text("Please send me the watermark image you want to use.")
-
-
 # Start the Pyrogram client
-app.run()
+app.run() 
