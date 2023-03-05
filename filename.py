@@ -58,7 +58,7 @@ def status_command_handler(client, message):
     else:
         # Send an error message if the replied message is not the modified video sent by the bot
         client.send_message(message.chat.id, 'Please reply to the modified video sent by the bot with the /status command.')
-
-# Start
-if __name__ == '__main__':
+        pass  # add this line to indicate that there is no code to be executed in this block
+# Start	
+if __name__ == '__main__':	
     app.run()
