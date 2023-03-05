@@ -14,7 +14,6 @@ port = int(os.environ.get('PORT', 5000))
 app = Client('my_bot', api_id, api_hash, bot_token=bot_token)
 
 # Define an error handler for all exceptions
-@app.on_error()
 async def handle_error(client, exception):
     logging.exception(exception)
     await client.send_message(chat_id='your_chat_id', text='An error occurred. Please try again later.')
