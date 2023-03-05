@@ -70,7 +70,6 @@ async def set_command(client, message):
 # Start the bot
 async def main():
     await app.start()
-    await app.idle()
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
