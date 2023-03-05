@@ -23,14 +23,17 @@ app = Client('my_bot', api_id=api_id, api_hash=api_hash, bot_token=bot_token)
 async def web_server():
     async def handler(_):
         return web.Response(text='Hello, world')
-    return web.Server(handler, port=PORT)
+    app = web.Application()
+    app.add_routes([web.get('/', handler)])
+    return app
 
 # Define a web response endpoint
 async def web_response():
-    app = web.AppRunner(await web_server())
-    await app.setup()
+    runner = web.AppRunner(await web_server())
+    await runner.setup()
     bind_address = "0.0.0.0"
-    await web.TCPSite(app, bind_address, PORT).start()
+    site = web.TCPSite(runner, bind_address, PORT)
+    await site.start()
 
 # Start the web server
 loop = asyncio.get_event_loop()
@@ -67,10 +70,8 @@ async def set_command(client, message):
 # Start the bot
 async def main():
     await app.start()
-    while True:
-        await asyncio.sleep(1)
+    await app.idle()
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
-
