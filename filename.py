@@ -2,11 +2,9 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 import os
 import logging
-import logging
-logging.basicConfig(filename='myapp.log', level=logging.DEBUG)
 
 # Set up the logging configuration
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='myapp.log', level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 # Create a Pyrogram client instance
 api_id = 15849735
@@ -17,6 +15,7 @@ app = Client('my_bot', api_id, api_hash, bot_token=bot_token)
 
 # Log the "I am alive" message
 logging.info('I am alive')
+
 # Define a command handler for the /start command
 @app.on_message(filters.command('start'))
 def start_command_handler(client, message):
@@ -59,8 +58,7 @@ def status_command_handler(client, message):
     else:
         # Send an error message if the replied message is not the modified video sent by the bot
         client.send_message(message.chat.id, 'Please reply to the modified video sent by the bot with the /status command.')
-        pass  # add this line to indicate that there is no code to be executed in this block
-        
+
 # Start
 if __name__ == '__main__':
-    app.run()  # Run the Pyrogram client
+    app.run()
