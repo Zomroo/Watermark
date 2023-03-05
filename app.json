@@ -14,15 +14,15 @@
   ],
   "env": {
     "API_ID": {
-      "description": "15849735.",
+      "description": "",
       "required": true
     },
     "API_HASH": {
-      "description": "b8105dc4c17419dfd4165ecf1d0bc100.",
+      "description": "",
       "required": true
     },
     "BOT_TOKEN": {
-      "description": "6145559264:AAEkUH_znhpaTdkbnndwP1Vy2ppv-C9Zf4o",
+      "description": "",
       "required": true
     }
   },
